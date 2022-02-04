@@ -1,25 +1,30 @@
+import { useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import Intro from './components/Intro';
+import Question from './components/Question';
+import Answer from './components/Answer';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const [overlay, showOverlay] = useState(true)
+    const arr = ["Adios", "Hola", "Au Revoir", "Salir"]
+    const answerList = arr.map(value => <Answer ans={value}/>)
+    
+    
+    function startQuiz() {
+        showOverlay(prevOverlay => !prevOverlay);
+    }
+
+    return (
+        <main>
+            {overlay && <Intro startQuiz={startQuiz}/>}
+            <Question 
+                ques={"How would one say goodbye in Spanish?"}
+                answerList={answerList}
+            /> 
+        </main>
+               
+    )
 }
 
 export default App;

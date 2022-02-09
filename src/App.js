@@ -8,6 +8,7 @@ import Answer from './components/Answer';
 function App() {
   const [overlay, showOverlay] = useState(true)
   const [questions, setQuestions] = useState([])
+  const [answers, setAnswers] = useState([])
   const [allData, setAllData] = useState([])
   
   useEffect(() => {
@@ -24,8 +25,6 @@ function App() {
       
       fetchQuestions(`https://opentdb.com/api.php?amount=5&difficulty=easy&type=multiple`)
   }, [])
-
-  console.log(questions);
   
   function startQuiz() {
       showOverlay(prevOverlay => !prevOverlay);
@@ -60,31 +59,36 @@ function App() {
     setQuestions(questionList);
   }
   
-  function setColor(id) {
-    /*setQuestions(prevQuestion => {
-        return prevQuestion.map(eachAnswer => {
-            eachAnswer.isSelected = false;
-            if (eachAnswer.id == id) {
-                return {...eachAnswer, isSelected: !eachAnswer.isSelected}
-            } else {
-                return eachAnswer
+  function changeSelection(arr, id) {    
+        return arr.map(item => {
+            if (item.id == id) {
+               return { ...item, isSelected: true}
             }
+            return {...item, isSelected: false}
         })
-    })*/
-    
+  }
+
+  function setColor(id) {
+    setQuestions(prevQues => {
+        return prevQues.map(eachQuestion => {
+            const updatedAnswers = changeSelection(eachQuestion.answers, id);
+            return { ...eachQuestion, answers: updatedAnswers}
+        })
+    })
   }
 
   const questionElements = questions.map(item => {
+      //const allAnswers = item.push(...item["answers"])
+      //setAnswer(allAnswers);
+      const answerEls = item["answers"].map(eachAnswer => {
+                            return <Answer ans={eachAnswer.value} 
+                            key={eachAnswer.id}
+                            isSelected={eachAnswer.isSelected}
+                            setColor={() => setColor(eachAnswer.id)}/>
+                        })
       return <Question 
               ques={item.question}
-              answerElements={
-                  item.answers.map(eachAnswer => {
-                    return <Answer ans={eachAnswer.value} 
-                    key={eachAnswer.id}
-                    isSelected={eachAnswer.isSelected}
-                    setColor={() => setColor(eachAnswer.id)}/>
-                  })
-              }
+              answerElements={answerEls}
               correctAnswer={item.correctAnswer}
           />
     })

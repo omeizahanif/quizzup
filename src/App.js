@@ -9,7 +9,7 @@ function App() {
   const [overlay, showOverlay] = useState(true)
   const [questions, setQuestions] = useState([])
   const [allData, setAllData] = useState([])
-  const [resultStyle, setResultStyle] = useState("")
+  const [style, setStyle] = useState("notSelected")
   const [total, setTotal] = useState(0)
   
   useEffect(() => {
@@ -64,8 +64,10 @@ function App() {
         const resetSelection = arr.map(item => ({...item, isSelected: false}));    
         return resetSelection.map(item => {
             if (item.id === id) {
+                setStyle("selected")
                 return { ...item, isSelected: !item.isSelected}
             } else {
+                setStyle("notSelected")
                 return item;
             }
         })
@@ -103,11 +105,11 @@ function App() {
     function setResultColors(item) {
         if ((item.isSelected && item.isCorrect) 
         || (!item.isSelected && item.isCorrect)) {
-            setResultStyle("correctAnswer");
+            setStyle("correctAnswer");
         } else if (item.isSelected && !item.isCorrect) {
-            setResultStyle("wrongAnswer");
+            setStyle("wrongAnswer");
         } else {
-            setResultStyle("notSelected");
+            setStyle("notSelected");
         }
     }
 
@@ -139,7 +141,7 @@ function App() {
                             key={eachAnswer.id}
                             isSelected={eachAnswer.isSelected}
                             setColor={() => setColor(eachAnswer.id)}
-                            className={resultStyle}/>
+                            className={style}/>
                         })
         return <Question 
                 ques={item.question}

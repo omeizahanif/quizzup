@@ -50,4 +50,23 @@ h1 {
   color: white;
   padding: 10px 22px;
   font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.selected {
+  background-color:#D6DBF5;
+}
+
+.correctAnswer {
+  background-color: #94D7A2;
+}
+
+.wrongAnswer {
+  background-color: #F8BCBC;
+}
+
+.notSelected {
+  background-color: white;
 }

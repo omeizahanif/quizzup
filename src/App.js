@@ -3,13 +3,14 @@ import { nanoid } from 'nanoid';
 import './App.css';
 import Intro from './components/Intro';
 import Question from './components/Question';
-
+import Answer from './components/Answer';
 
 function App() {
   const [overlay, showOverlay] = useState(true)
   const [questions, setQuestions] = useState([])
-
   const [allData, setAllData] = useState([])
+  const [resultStyle, setResultStyle] = useState("")
+  const [total, setTotal] = useState(0)
   
   useEffect(() => {
       async function fetchQuestions(url) {
@@ -26,33 +27,21 @@ function App() {
       fetchQuestions(`https://opentdb.com/api.php?amount=5&difficulty=easy&type=multiple`)
   }, [])
   
-  function startQuiz() {
-      showOverlay(prevOverlay => !prevOverlay);
-      loadQuestions();
-  }
-  
-  function shuffleArray(arr) {
-      return arr.sort(() => Math.random() - 0.5);
-  }
+    function startQuiz() {
+        showOverlay(prevOverlay => !prevOverlay);
+        loadQuestions();
+    }
 
-  
+    function shuffleArray(arr) {
+        return arr.sort(() => Math.random() - 0.5);
+    }
 
-  function loadQuestions() {
-    const questionList = allData.map(item => {
-        const answerList = loadAnswers(item);
-        return { question: item.question, answers: answerList, correctAnswer: item["correct_answer"]}
-        //return { question: item.question, correctAnswer: item["correct_answer"]}
-    })
-
-    setQuestions(questionList);
-  }
-
-  function loadAnswers(arr) {
+    function loadAnswers(arr) {
         const correct = {
-          value: arr.correct_answer,
-          isSelected: false,
-          isCorrect: true,
-          id: nanoid()
+            value: arr.correct_answer,
+            isSelected: false,
+            isCorrect: true,
+            id: nanoid()
         };
         const incorrect = arr.incorrect_answers.map(each => ({value: each, isSelected: false, isCorrect: false, id: nanoid()}));
         //collect answers into an array
@@ -60,33 +49,113 @@ function App() {
         //shuffle the array so that the answer can be in any position
         const shuffleAnswers = shuffleArray(answerArray)
         return shuffleAnswers;
-  }
-  
-  function changeSelection(arr, id) {    
-        const newArr = arr.map(item => item.isSelected == false);
+    }
+
+    function loadQuestions() {
+        const questionList = allData.map(item => {
+            const answerList = loadAnswers(item);
+            return { question: item.question, answers: answerList, correctAnswer: item["correct_answer"]}
+        })
+
+        setQuestions(questionList);
+    }
+
+    function changeSelection(arr, id) {
+        const resetSelection = arr.map(item => ({...item, isSelected: false}));    
+        return resetSelection.map(item => {
+            if (item.id === id) {
+                return { ...item, isSelected: !item.isSelected}
+            } else {
+                return item;
+            }
+        })
+    }
+    
+    function findAnswer(arr, id) {
+        for (let i =0; i < arr.length; i++) {
+            if (arr[i].id === id) {
+                return true;
+            }
+        }
+    }
+
+    function setColor(id) {
+        //find question that carries the answer with the id
+        const currentQuestion = questions.find(question => {
+                if (findAnswer(question.answers, id)) {
+                    return question;
+                }        
+        })
         
-  }
+        //iterate that question and set the color of that answer
+        const newQuestions = questions.map(eachQuestion => {
+                if (eachQuestion === currentQuestion) {
+                    return {...eachQuestion,
+                    answers: changeSelection(eachQuestion.answers, id)}           
+                } else {
+                    return eachQuestion;
+                }
+            });
+        
+        setQuestions(newQuestions);   
+    }
 
-  
+    function setResultColors(item) {
+        if ((item.isSelected && item.isCorrect) 
+        || (!item.isSelected && item.isCorrect)) {
+            setResultStyle("correctAnswer");
+        } else if (item.isSelected && !item.isCorrect) {
+            setResultStyle("wrongAnswer");
+        } else {
+            setResultStyle("notSelected");
+        }
+    }
 
-  const questionElements = questions.map(item => {
-      //const allAnswers = item.push(...item["answers"])
-      //setAnswer(allAnswers);
-     
-      return <Question 
-              ques={item.question}
-              answerList={item.answers}
-              correctAnswer={item.correctAnswer}
-          />
+    function calcResults(arr) {
+        let count = 0;
+        arr.forEach(answer => {
+            setResultColors(answer);
+            if (answer.isSelected && answer.isCorrect) {
+                count++;
+            }
+        })
+        return count;
+    }
+
+    function submitAnswers() {
+        const results = questions.map(eachQuestion => {
+            console.log(eachQuestion.correctAnswer);
+           return calcResults(eachQuestion.answers)
+        });
+        
+        console.log(results)
+    }
+
+    const questionElements = questions.map(item => {
+        //const allAnswers = item.push(...item["answers"])
+        //setAnswer(allAnswers);
+        const answerEls = item["answers"].map(eachAnswer => {
+                            return <Answer ans={eachAnswer.value} 
+                            key={eachAnswer.id}
+                            isSelected={eachAnswer.isSelected}
+                            setColor={() => setColor(eachAnswer.id)}
+                            className={resultStyle}/>
+                        })
+        return <Question 
+                ques={item.question}
+                answerElements={answerEls}
+                correctAnswer={item.correctAnswer}
+            />
     })
 
   return (
-      <main>
-          {overlay && <Intro startQuiz={startQuiz}/>}
-          <div>{questionElements}</div>
-      </main>
-             
-  )
+    <main>
+        {overlay && <Intro startQuiz={startQuiz}/>}
+        <div>{questionElements}</div>
+        <button onClick={submitAnswers}>Check answers</button>
+    </main>
+           
+    )
 }
 
 export default App;

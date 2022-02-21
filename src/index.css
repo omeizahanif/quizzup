@@ -59,11 +59,11 @@ h1 {
   background-color:#D6DBF5;
 }
 
-.correctAnswer {
+.is_correct {
   background-color: #94D7A2;
 }
 
-.wrongAnswer {
+.is_wrong {
   background-color: #F8BCBC;
 }
 

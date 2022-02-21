@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
+import { decode } from "html-entities"
 import './App.css';
 import Intro from './components/Intro';
 import Question from './components/Question';
@@ -9,7 +10,6 @@ function App() {
   const [overlay, showOverlay] = useState(true)
   const [questions, setQuestions] = useState([])
   const [allData, setAllData] = useState([])
-  const [style, setStyle] = useState("notSelected")
   const [total, setTotal] = useState(0)
   
   useEffect(() => {
@@ -29,21 +29,35 @@ function App() {
   
     function startQuiz() {
         showOverlay(prevOverlay => !prevOverlay);
-        loadQuestions();
+        loadQuestions(allData);
     }
 
+    /**
+     * a function to shuffle items, placing them
+     * in different indexes
+     * @param {object} arr 
+     * @returns {object} a shuffled arr
+     */
     function shuffleArray(arr) {
         return arr.sort(() => Math.random() - 0.5);
     }
 
+    /**
+     * 
+     * @param {object} arr 
+     * @returns {object} an arr of answers
+     * shuffled to hide correct answer position
+     */
+
     function loadAnswers(arr) {
         const correct = {
-            value: arr.correct_answer,
+            value: decode(arr.correct_answer),
             isSelected: false,
-            isCorrect: true,
+            className: "notSelected",
+            //isCorrect: true,
             id: nanoid()
         };
-        const incorrect = arr.incorrect_answers.map(each => ({value: each, isSelected: false, isCorrect: false, id: nanoid()}));
+        const incorrect = arr.incorrect_answers.map(each => ({value: decode(each), isSelected: false, /*isCorrect: false,*/ id: nanoid()}));
         //collect answers into an array
         const answerArray = [correct, ...incorrect]
         //shuffle the array so that the answer can be in any position
@@ -51,27 +65,51 @@ function App() {
         return shuffleAnswers;
     }
 
-    function loadQuestions() {
-        const questionList = allData.map(item => {
+    /**
+     * a function to prepare a list
+     * of questions and set the questions state
+     * @param {object} arr
+     * @returns {boolean} true value if call is
+     * successful
+     */
+    function loadQuestions(arr) {
+        const questionList = arr.map(item => {
             const answerList = loadAnswers(item);
-            return { question: item.question, answers: answerList, correctAnswer: item["correct_answer"]}
+            return { question: decode(item.question), answers: answerList, correctAnswer: item["correct_answer"]}
         })
-
         setQuestions(questionList);
+        return true;
     }
 
+    /**
+     * a function to toggle the color of each answer
+     * component when clicked
+     * @param {object} arr 
+     * @param {string} id 
+     * @returns {object} an object mutated or the object unchanged
+     */
+
     function changeSelection(arr, id) {
-        const resetSelection = arr.map(item => ({...item, isSelected: false}));    
+        const resetSelection = arr.map(item => ({...item, isSelected: false, className: "notSelected"}));    
         return resetSelection.map(item => {
             if (item.id === id) {
-                setStyle("selected")
-                return { ...item, isSelected: !item.isSelected}
+                //setStyle("selected")
+                return { ...item, isSelected: !item.isSelected, className: "selected"}
             } else {
-                setStyle("notSelected")
+                //setStyle("notSelected")
                 return item;
             }
         })
     }
+
+    /**
+     * a function to find an answer object
+     * by comparing its id with a given id
+     * @param {object} arr 
+     * @param {string} id 
+     * @returns {boolean} true value
+     * 
+     */
     
     function findAnswer(arr, id) {
         for (let i =0; i < arr.length; i++) {
@@ -81,6 +119,13 @@ function App() {
         }
     }
 
+    /**
+     * a function to set the color of an answer
+     * component if its id is same as given id parameter
+     * and update the questions state
+     * @param {string} id 
+     * @returns {boolean} true value
+     */
     function setColor(id) {
         //find question that carries the answer with the id
         const currentQuestion = questions.find(question => {
@@ -99,38 +144,67 @@ function App() {
                 }
             });
         
-        setQuestions(newQuestions);   
+        setQuestions(newQuestions);
+        return true;   
     }
 
-    function setResultColors(item) {
-        if ((item.isSelected && item.isCorrect) 
-        || (!item.isSelected && item.isCorrect)) {
-            setStyle("correctAnswer");
-        } else if (item.isSelected && !item.isCorrect) {
-            setStyle("wrongAnswer");
-        } else {
-            setStyle("notSelected");
-        }
+    /**
+     * a function to set appropriate colors
+     * for the right, wrong and unselected answers
+     * @param {object} arr 
+     * @param {string} correctAnswer 
+     * @returns {object} updated arr object 
+     */
+
+    function setResultColors(arr, correctAnswer) {
+        return arr.map(item => {
+            const itemIsCorrect = item.value == correctAnswer;
+            if (!itemIsCorrect) {
+                return item.isSelected ? { ...item, className: "is_wrong"} : item;
+                
+            } else {
+                return { ...item, className: "is_correct"}
+            }
+        })
     }
 
-    function calcResults(arr) {
+    /**
+     * a function to calculate the final
+     * results of the quiz
+     * @param {object} arr 
+     * @param {string} correctAnswer 
+     * @returns {number} count
+     */
+
+    function calcResults(arr, correctAnswer) {
         let count = 0;
         arr.forEach(answer => {
-            setResultColors(answer);
-            if (answer.isSelected && answer.isCorrect) {
+            if (answer.isSelected && (answer.value == correctAnswer)) {
                 count++;
             }
         })
         return count;
     }
 
+    /**
+     * a function to submit the answers 
+     * selected after the quiz ends and
+     * set the questions and total states
+     */
     function submitAnswers() {
         const results = questions.map(eachQuestion => {
-            console.log(eachQuestion.correctAnswer);
-           return calcResults(eachQuestion.answers)
+           return calcResults(eachQuestion.answers, eachQuestion.correctAnswer)
         });
+
+        const updatedQuestions = questions.map(eachQuestion => {
+            return {...eachQuestion,
+                answers: setResultColors(eachQuestion.answers, eachQuestion.correctAnswer)} 
+         });
+
+        setQuestions(updatedQuestions);
         
-        console.log(results)
+        setTotal(results.reduce((acc, curr) => acc + curr, 0));
+
     }
 
     const questionElements = questions.map(item => {
@@ -141,7 +215,7 @@ function App() {
                             key={eachAnswer.id}
                             isSelected={eachAnswer.isSelected}
                             setColor={() => setColor(eachAnswer.id)}
-                            className={style}/>
+                            className={eachAnswer.className}/>
                         })
         return <Question 
                 ques={item.question}
@@ -155,6 +229,7 @@ function App() {
         {overlay && <Intro startQuiz={startQuiz}/>}
         <div>{questionElements}</div>
         <button onClick={submitAnswers}>Check answers</button>
+        <p>{`Your score is ${total}`}</p>
     </main>
            
     )

@@ -11,6 +11,7 @@ function App() {
   const [questions, setQuestions] = useState([])
   const [allData, setAllData] = useState([])
   const [total, setTotal] = useState(0)
+  const [quiz, setQuiz] = useState(false)
   
   useEffect(() => {
       async function fetchQuestions(url) {
@@ -25,11 +26,14 @@ function App() {
       }
       
       fetchQuestions(`https://opentdb.com/api.php?amount=5&difficulty=easy&type=multiple`)
-  }, [])
+      
+  }, [quiz])
   
     function startQuiz() {
         showOverlay(prevOverlay => !prevOverlay);
         loadQuestions(allData);
+        setQuiz(false)
+        setTotal(0)
     }
 
     /**
@@ -192,6 +196,7 @@ function App() {
      * set the questions and total states
      */
     function submitAnswers() {
+        
         const results = questions.map(eachQuestion => {
            return calcResults(eachQuestion.answers, eachQuestion.correctAnswer)
         });
@@ -202,9 +207,13 @@ function App() {
          });
 
         setQuestions(updatedQuestions);
-        
         setTotal(results.reduce((acc, curr) => acc + curr, 0));
+        setQuiz(true)
 
+    }
+
+    function checkGameStatus() {
+        return quiz ? startQuiz() : submitAnswers();
     }
 
     const questionElements = questions.map(item => {
@@ -225,11 +234,16 @@ function App() {
     })
 
   return (
-    <main>
+    <main className='container'>
         {overlay && <Intro startQuiz={startQuiz}/>}
-        <div>{questionElements}</div>
-        <button onClick={submitAnswers}>Check answers</button>
-        <p>{`Your score is ${total}`}</p>
+        {!overlay && <div className='questionContainer'>{questionElements}</div>}
+        {!overlay && <div className='status'>
+            <button 
+        onClick={checkGameStatus}
+        className="submit"
+        >{quiz ? "Play again" : "Check answers"}</button>
+        {quiz && <p className='statusMessage'>{`You scored ${total}/5 correct answers`}</p>}
+        </div>}
     </main>
            
     )

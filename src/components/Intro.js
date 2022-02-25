@@ -1,12 +1,12 @@
-import {useState, useEffect} from "react";
+
 
 export default function Intro(props) {
     
     return (
         <div className="intro-container">
-            <h1>Quizzical</h1>
-            <p>Some description if needed</p>
-            <button onClick={props.startQuiz}>Start quiz</button>
+            <h1 className="gameTitle">Quizzical</h1>
+            <p>5 questions to test your general knowledge</p>
+            <button onClick={props.startQuiz} className="startBtn">Start quiz</button>
         </div>
     )
 }

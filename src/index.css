@@ -5,13 +5,11 @@
 body {
   font-family: "Inter", sans-serif;
   background: #F5F7FB;
-  height: 120vh;
 }
 
 .container {
   position: relative;
-  height: 100vh;
-  
+  height: auto;
 }
 
 .intro-container {
@@ -21,7 +19,7 @@ body {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 100%;
+  height: 100vh;
 }
 
 .gameTitle {
@@ -62,8 +60,10 @@ body {
 
 .startBtn:focus, 
 .startBtn:hover,
+.startBtn:active,
 .submit:focus,
-.submit:hover {
+.submit:hover,
+.submit:active {
   cursor: pointer;
   border: 1px solid #4D5B9E;
   color: #4D5B9E;
@@ -114,7 +114,8 @@ h1, .question-block p {
 }
 
 .answer:hover,
-.answer:focus {
+.answer:focus,
+.answer:active {
   background: #D6DBF5;
   cursor: pointer;
 }
@@ -123,6 +124,7 @@ h1, .question-block p {
   display: flex;
   flex-direction: row-reverse;
   justify-content: center;
+  padding-bottom: 40px;
 }
 
 .statusMessage {
@@ -131,8 +133,6 @@ h1, .question-block p {
   color: #293264;
   margin-right: .5rem;
 }
-
-
 
 .selected {
   background-color:#D6DBF5;
@@ -148,4 +148,24 @@ h1, .question-block p {
 
 .notSelected {
   background-color: white;
+}
+
+@media all and (max-width: 500px){
+  .question-block {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .question-block {
+    font-size: 12.8px;
+  }
+
+  .answer-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .answer-list span {
+    margin-bottom: .5rem;
+  }
 }

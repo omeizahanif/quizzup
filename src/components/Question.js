@@ -4,7 +4,7 @@ export default function Question(props) {
         <div className="question-block">
             <p>{props.ques}</p>
             <div className='answer-list'>{props.answerElements}</div>
-            <span className="correctAnswer">{props.correctAnswer}</span>
+            <p className="correctAnswer">{props.correctAnswer}</p>
         </div>
     )
 }

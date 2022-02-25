@@ -58,10 +58,9 @@ function App() {
             value: decode(arr.correct_answer),
             isSelected: false,
             className: "notSelected",
-            //isCorrect: true,
             id: nanoid()
         };
-        const incorrect = arr.incorrect_answers.map(each => ({value: decode(each), isSelected: false, /*isCorrect: false,*/ id: nanoid()}));
+        const incorrect = arr.incorrect_answers.map(each => ({value: decode(each), isSelected: false, className: "notSelected", id: nanoid()}));
         //collect answers into an array
         const answerArray = [correct, ...incorrect]
         //shuffle the array so that the answer can be in any position
@@ -217,8 +216,6 @@ function App() {
     }
 
     const questionElements = questions.map(item => {
-        //const allAnswers = item.push(...item["answers"])
-        //setAnswer(allAnswers);
         const answerEls = item["answers"].map(eachAnswer => {
                             return <Answer ans={eachAnswer.value} 
                             key={eachAnswer.id}
